@@ -1,7 +1,6 @@
 from flask import Flask
 from flask import request
 from pCoordinates import coordinates
-import sys
 
 app = Flask(__name__)
 
@@ -13,16 +12,27 @@ def hello_world():
 def getAvailableSpots():
     if request.method == 'POST': #only enters here when the form is submitted
         available_spots = []
-        latitude = request.form['latitude']
-        longitude = request.form['longitude']
-        radius = request.form['radius']
+
+        if (request.form['latitude'] == "" or request.form['longitude'] == "" or request.form['radius'] == ""):
+            return "<h3>" + "Error: please fill out entire form" + "</h3>"
+        latitude = int(request.form['latitude'])
+        longitude = int(request.form['longitude'])
+        radius = int(request.form['radius'])
+
+        #input validation
+        if (latitude > 90 or latitude < -90): # Latitudes range from -90 to 90
+            return "<h3>" + "Error: please input a latitude between -90 and 90" + "</h3>"
+        if (longitude > 180 or longitude < -180): #Longitudes range from -180 to 180
+            return "<h3>" + "Error: please input a longitude between -180 and 180" + "</h3>"
+        if (radius < 0): #radius can't be positive
+            return "<h3>" + "Error: please input a radius greater than or equal to 0" + "</h3>"
 
         if len(coordinates) == 0:#no spots available in any location
             return "<h3>" + "No parking spots can be reserved right now. Please check back later" + "</h3>"
         else:
             for c in coordinates:
-                if (c["lat"] <= int(latitude) + int(radius) and c["lat"] >= int(latitude) - int(radius)) and \
-                    (c["lon"] <= int(longitude) + int(radius) and c["lon"] >= int(longitude) - int(radius)):
+                if (c["lat"] <= latitude + radius and c["lat"] >= latitude - radius) and \
+                    (c["lon"] <= longitude + radius and c["lon"] >= longitude - radius):
                     available_spots.append(c)
 
         if len(available_spots) == 0:#no spots available in specified radius
@@ -31,9 +41,9 @@ def getAvailableSpots():
     if request.method == 'GET':
         return '''<form method="POST">
                       Input the latitude, longitude, and radius you would like to look for parking spots in<br>
-                      Latitude: <input type="text" name="latitude"><br>
-                      Longitude: <input type="text" name="longitude"><br>
-                      Radius: <input type="text" name="radius"><br>
+                      Latitude: <input type="number" name="latitude"><br>
+                      Longitude: <input type="number" name="longitude"><br>
+                      Radius: <input type="number" name="radius"><br>
                       <input type="submit" value="Submit"><br>
                   </form>'''
 
@@ -42,6 +52,9 @@ def reserveSpot():
     if request.method == 'POST': #only enters here when the form is submitted
         removed = False
         id = request.form['id']
+
+        if int(id) < 0:
+            return "<h3>" + "Error: invalid id" + "</h3>"
 
         if len(coordinates) == 0: #no parking spots are available to be reserved
             return "<h3>" + "No parking spots can be reserved right now." + "<h3>"
@@ -58,7 +71,7 @@ def reserveSpot():
     if request.method == 'GET':
         return '''<form method="POST">
                       Input the id of the parking spot you want to reserve <br>
-                      ID: <input type="text" name="id"><br>
+                      ID: <input type="number" name="id"><br>
                       <input type="submit" value="Submit"><br>
                   </form>'''
 
