@@ -3,31 +3,27 @@ from flask import request
 from pCoordinates import coordinates
 
 app = Flask(__name__)
+links = '''<div>
+            <a href="http://melshee.pythonanywhere.com/api/parkingspots/available">See available parking spots</a>
+           </div>
+           <div>
+            <a href="http://melshee.pythonanywhere.com/api/parkingspots/reserve">Reserve a parking spot</a>
+           </div>
+           <div>
+            <a href="http://melshee.pythonanywhere.com">Go back to main page</a>
+           </div> '''
 
-@app.route('/')
-def main():
-    return 'Welcome to Melissa\'s simple parking spot reservation API. It features 2 protocols: <br>' + \
-            '<ol> \
-                <li>/available</li> \
-                    <ul>returns all available parking spots within the specified radius of \
-                        a latitude and longitude point (also needs to be specified). \
-                    </ul> \
-                <li>/reserve/{id}</li> \
-                    <ul>reserved the parking spot with the given id (if possible). If successfully \
-                        reserved, the spot is removed from the list of available parking spots. \
-                    </ul> \
-            </ol>'
-
-@app.route('/available', methods=['GET', 'POST'])
+@app.route('/api/parkingspots/available', methods=['GET', 'POST'])
 def getAvailableSpots():
     if request.method == 'POST': #only enters here when the form is submitted
         available_spots = []
+        available_spots_list = "<ul>"
 
         if (request.form['latitude'] == "" or request.form['longitude'] == "" or request.form['radius'] == ""):
             return "<h3>" + "Error: please fill out entire form" + "</h3>"
-        latitude = int(request.form['latitude'])
-        longitude = int(request.form['longitude'])
-        radius = int(request.form['radius'])
+        latitude = float(request.form['latitude'])
+        longitude = float(request.form['longitude'])
+        radius = float(request.form['radius'])
 
         #input validation
         if (latitude > 90 or latitude < -90): # Latitudes range from -90 to 90
@@ -44,33 +40,26 @@ def getAvailableSpots():
                 if (c["lat"] <= latitude + radius and c["lat"] >= latitude - radius) and \
                     (c["lon"] <= longitude + radius and c["lon"] >= longitude - radius):
                     available_spots.append(c)
+                    available_spots_list = available_spots_list + "<li>" + str(c) + "</li>"
 
         if len(available_spots) == 0: #no spots available in specified radius
             return "<h3>" + "No parking spots available within this radius" + "</h3>"
-        return "<h3>" + str(available_spots) + "</h3>" + \
-                  '''<div>
-                    <a href="http://melshee.pythonanywhere.com/available">See available parking spots</a>
-                   </div>''' + \
-                  '''<div>
-                    <a href="http://melshee.pythonanywhere.com/reserve">Reserve a parking spot</a>
-                   </div>'''
+
+
+        available_spots_list = available_spots_list + "</ul>"
+        return str(available_spots_list) + links
+
 
     if request.method == 'GET':
         return '''<form method="POST">
                       Input the latitude, longitude, and radius you would like to look for parking spots in<br>
-                      Latitude: <input type="number" name="latitude"><br>
-                      Longitude: <input type="number" name="longitude"><br>
-                      Radius: <input type="number" name="radius"><br>
+                      Latitude: <input type="number" name="latitude" step="0.1"><br>
+                      Longitude: <input type="number" name="longitude" step="0.1"><br>
+                      Radius: <input type="number" name="radius" step="0.1"><br>
                       <input type="submit" value="Submit"><br>
-                  </form>''' + \
-                  '''<div>
-                    <a href="http://melshee.pythonanywhere.com/available">See available parking spots</a>
-                   </div>''' + \
-                  '''<div>
-                    <a href="http://melshee.pythonanywhere.com/reserve">Reserve a parking spot</a>
-                   </div>'''
+                  </form>''' + links
 
-@app.route('/reserve', methods=['GET', 'POST'])
+@app.route('/api/parkingspots/reserve', methods=['GET', 'POST'])
 def reserveSpot():
     if request.method == 'POST': #only enters here when the form is submitted
         removed = False
@@ -86,13 +75,7 @@ def reserveSpot():
             if s["id"] == int(id):
                 coordinates.remove(s)
                 removed = True
-                return "reserved parking spot # " + id + " has been reserved!" + \
-                        '''<div>
-                            <a href="http://melshee.pythonanywhere.com/available">See available parking spots</a>
-                           </div>''' + \
-                        '''<div>
-                            <a href="http://melshee.pythonanywhere.com/reserve">Reserve a parking spot</a>
-                           </div>'''
+                return "reserved parking spot # " + id + " has been reserved!" + links
 
         if(not removed): #the car you want to reserve is not available
             return "Parking spot #" + id + " doesn't exist or cannot be reserved right now."
@@ -102,11 +85,38 @@ def reserveSpot():
                       Input the id of the parking spot you want to reserve <br>
                       ID: <input type="number" name="id"><br>
                       <input type="submit" value="Submit"><br>
-                  </form>''' + \
-                  '''<div>
-                  <a href="http://melshee.pythonanywhere.com/available">See available parking spots</a>
-                  </div>''' + \
-                  '''<div>
-                    <a href="http://melshee.pythonanywhere.com/reserve">Reserve a parking spot</a>
-                  </div>'''
+                  </form>''' + links
+
+@app.route('/')
+def main():
+    list = "<ul>"
+
+    for c in coordinates:
+        list = list + "<li>" + str(c) + "</li>"
+
+    list = list + "</ul>"
+
+    return 'Welcome to Melissa\'s simple parking spot reservation API. It features two protocols: <br>' + \
+            '<ol> \
+                <li><a href="http://melshee.pythonanywhere.com/api/parkingspots/available">/api/parkingspots/available</a></li> \
+                    <ul> \
+                        <li>input: latitude, longitude, and radius</li> \
+                        <li>returns: all available parking spots within the specified radius</li> \
+                    </ul> \
+                <li><a href="http://melshee.pythonanywhere.com/api/parkingspots/reserve">/api/parkingspots/reserve</a></li> \
+                    <ul> \
+                        <li>input: id of parking spot</li> \
+                        <li>returns: response message whether reservation was successful or not</li> \
+                        <li>If successfully reserved, the spot is removed from the list of available parking spots.</li> \
+                    </ul> \
+            </ol>' + \
+            'The set of parking spots (in pCoordinates.py) is listed below:' + list + \
+            'Some useful tests to try: <br> \
+                <ul> \
+                    <li>input: latitude=37.5, longitude=-122.4, radius=0</li> \
+                    <li>input: latitude=37.5, longitude=-122.4, radius=1</li> \
+                    <li>input: latitude=37.5, longitude=-122.4, radius=50</li> \
+                    <li>input: latitude=37.5, longitude=-122.4, radius=0</li> \
+                    <li>returns: all available parking spots within the specified radius</li> \
+                </ul>'
 
