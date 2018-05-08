@@ -30,7 +30,7 @@ def getAvailableSpots():
             return "<h3>" + "Error: please input a latitude between -90 and 90" + "</h3>"
         if (longitude > 180 or longitude < -180): #Longitudes range from -180 to 180
             return "<h3>" + "Error: please input a longitude between -180 and 180" + "</h3>"
-        if (radius < 0): #radius can't be positive
+        if (radius < 0): #radius can't be negative
             return "<h3>" + "Error: please input a radius greater than or equal to 0" + "</h3>"
 
         if len(coordinates) == 0: #no spots available in any location
@@ -111,12 +111,33 @@ def main():
                     </ul> \
             </ol>' + \
             'The set of parking spots (in pCoordinates.py) is listed below:' + list + \
-            'Some useful tests to try: <br> \
+            'Some useful tests to try for requests made to /api/parkingspots/available: <br> \
                 <ul> \
                     <li>input: latitude=37.5, longitude=-122.4, radius=0</li> \
+                        <ul>Expected output: 1 spot: id=1 </ul> \
                     <li>input: latitude=37.5, longitude=-122.4, radius=1</li> \
+                        <ul>Expected output: 3 spots: id=1, id=2, id=3 </ul> \
                     <li>input: latitude=37.5, longitude=-122.4, radius=50</li> \
-                    <li>input: latitude=37.5, longitude=-122.4, radius=0</li> \
-                    <li>returns: all available parking spots within the specified radius</li> \
+                        <ul>Expected output: 5 spots: id=1, id=2, id=3, id=4, id=5  </ul> \
+                    <li>input: latitude=37.5, longitude=-122.4, radius=200</li> \
+                        <ul>Expected output: 10 spots: (all 10 ids)  </ul> \
+                </ul>' + \
+            'Edge cases for requests made to /api/parkingspots/available: <br> \
+                <ul> \
+                    <li>input: latitude, longitude, and/or radius forms are left blank</li> \
+                        <ul>Expected output: "Error: please fill out entire form" </ul> \
+                    <li>input: latitude < -180 or latitud > 180</li> \
+                        <ul>Expected output: "Error: please input a latitude between -90 and 90" </ul> \
+                    <li>input: longitude < -180 or longitude > 180</li> \
+                        <ul>Expected output: "Error: please input a longitude between -180 and 180"  </ul> \
+                    <li>input: radius < 0</li> \
+                        <ul>Expected output: "Error: please input a radius greater than or equal to 0"  </ul> \
+                </ul>' + \
+            'Edge cases for requests made to /api/parkingspots/requests: <br> \
+                <ul> \
+                    <li>input: id < 0</li> \
+                        <ul>Expected output: "Error: invalid id" </ul> \
+                    <li>input: if of spot that has already been reserved</li> \
+                        <ul>Expected output: "Parking spot #{id} doesn\'t exist or cannot be reserved right now." </ul> \
                 </ul>'
 
