@@ -75,7 +75,7 @@ def reserveSpot():
             if s["id"] == int(id):
                 coordinates.remove(s)
                 removed = True
-                return "reserved parking spot # " + id + " has been reserved!" + links
+                return "parking spot # " + id + " has been reserved!" + links
 
         if(not removed): #the car you want to reserve is not available
             return "Parking spot #" + id + " doesn't exist or cannot be reserved right now."
