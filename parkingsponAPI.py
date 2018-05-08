@@ -1,50 +1,32 @@
+from flask import Flask
+from flask import request
 from pCoordinates import coordinates
-# from pCoordinates import reserved
 
-#sending a request
-          method: "POST",
-          url: "/api/v1/parkingspots/available",
-          data: {
-            {
-              "lat": 37.5,
-              "lon": -122.4,
-              "radius": 50
-            }
-          },
-          success: returned_data => {
-            print(returned_data);
-          }
+app = Flask(__name__)
 
-#backend
-def api_request():
-if( url == "/api/v1/parkingspots/available" && method == "POST")
-  available_spots = []
+@app.route('/')
+def hello_world():
+    return 'Hello from Flask!'
 
-  if len(coordinates) != 0
-    for c in coordinates: 
-      if((c.lat <= lat + radius || c.lat <= lat - radius) && (c.lon <= lon + radius || c.lon <= lon  radius))
-        available_spots.append(c)           
-  
-  return available_spots
+@app.route('/available', methods=['GET', 'POST'])
+def getAvailableSpots():
+    if request.method == 'POST': #this block is only entered when the form is submitted
+        available_spots = []
+        if len(coordinates) != 0: #add special empty message
+            for c in coordinates:
+                # if (clat <= 1000 or c.lat <= 1000) and (c.lon <= 1000 or c.lon <= 1000):
+                available_spots.append(c["id"])
 
-else if( url =="/api/v1/parkingspots/reserve/<id>" && method == "GET") 
-  bool removed = false
+        return "<h2>" + str(available_spots) + "</h2>"
+    if request.method == 'GET':
+        return '''<form method="POST">
+                      Latitude: <input type="text" name="latitude"><br>
+                      Longitude: <input type="text" name="radius"><br>
+                      Radius: <input type="text" name="radius"><br>
+                      <input type="submit" value="Submit"><br>
+                  </form>'''
 
-  if len(coordinates) == 0 #no parking spots are available to be reserved
-    return "no parking spots can be reserved right now. Please check back later"
-
-  for c in coordinates: 
-    if(c.id == id)
-      coordinates.remove(c)
-      removed = true
-      return "reserved parking spot #" + id + "enjoy!"
-
-  if(removed == false) #the car you want to reserve is not available
-    return "Parking spot #" + id + "cannot be reserved right now. Please check back later"
-
-
-
-#tests
-#no cars are available within the radius
-#the car you want to reserve is not available
+@app.route('/reserve')
+def reserveSpot():
+    return 'reserving requested spot'
 
